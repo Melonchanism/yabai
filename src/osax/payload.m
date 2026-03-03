@@ -1,6 +1,5 @@
 #include <Foundation/Foundation.h>
 
-#include <Foundation/NSObjCRuntime.h>
 #include <mach-o/getsect.h>
 #include <mach-o/dyld.h>
 #include <mach/mach.h>
@@ -961,7 +960,6 @@ static void set_expose_animation_duration(char *message) {
     double duration;
     unpack(duration);
     expose_animation_duration = duration;
-    NSLog(@"[yabai-sa] expose_animation_duration: %f", expose_animation_duration);
 }
 
 static void do_handshake(int sockfd)
