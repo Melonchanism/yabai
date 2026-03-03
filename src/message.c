@@ -20,39 +20,40 @@ extern bool g_verbose;
 #define DOMAIN_SIGNAL  "signal"
 
 /* --------------------------------DOMAIN CONFIG-------------------------------- */
-#define COMMAND_CONFIG_DEBUG_OUTPUT          "debug_output"
-#define COMMAND_CONFIG_MFF                   "mouse_follows_focus"
-#define COMMAND_CONFIG_FFM                   "focus_follows_mouse"
-#define COMMAND_CONFIG_DISPLAY_ORDER         "display_arrangement_order"
-#define COMMAND_CONFIG_WINDOW_ORIGIN         "window_origin_display"
-#define COMMAND_CONFIG_WINDOW_PLACEMENT      "window_placement"
-#define COMMAND_CONFIG_WINDOW_INSERT_POINT   "window_insertion_point"
-#define COMMAND_CONFIG_WINDOW_ZOOM_PERSIST   "window_zoom_persist"
-#define COMMAND_CONFIG_OPACITY               "window_opacity"
-#define COMMAND_CONFIG_OPACITY_DURATION      "window_opacity_duration"
-#define COMMAND_CONFIG_ANIMATION_DURATION    "window_animation_duration"
-#define COMMAND_CONFIG_ANIMATION_EASING      "window_animation_easing"
-#define COMMAND_CONFIG_SHADOW                "window_shadow"
-#define COMMAND_CONFIG_MENUBAR_OPACITY       "menubar_opacity"
-#define COMMAND_CONFIG_ACTIVE_WINDOW_OPACITY "active_window_opacity"
-#define COMMAND_CONFIG_NORMAL_WINDOW_OPACITY "normal_window_opacity"
-#define COMMAND_CONFIG_INSERT_FEEDBACK_COLOR "insert_feedback_color"
-#define COMMAND_CONFIG_TOP_PADDING           "top_padding"
-#define COMMAND_CONFIG_BOTTOM_PADDING        "bottom_padding"
-#define COMMAND_CONFIG_LEFT_PADDING          "left_padding"
-#define COMMAND_CONFIG_RIGHT_PADDING         "right_padding"
-#define COMMAND_CONFIG_LAYOUT                "layout"
-#define COMMAND_CONFIG_WINDOW_GAP            "window_gap"
-#define COMMAND_CONFIG_SPLIT_RATIO           "split_ratio"
-#define COMMAND_CONFIG_SPLIT_TYPE            "split_type"
-#define COMMAND_CONFIG_AUTO_BALANCE          "auto_balance"
-#define COMMAND_CONFIG_MOUSE_MOD             "mouse_modifier"
-#define COMMAND_CONFIG_MOUSE_ACTION1         "mouse_action1"
-#define COMMAND_CONFIG_MOUSE_ACTION2         "mouse_action2"
-#define COMMAND_CONFIG_MOUSE_DROP_ACTION     "mouse_drop_action"
-#define COMMAND_CONFIG_EXTERNAL_BAR          "external_bar"
+#define COMMAND_CONFIG_DEBUG_OUTPUT              "debug_output"
+#define COMMAND_CONFIG_MFF                       "mouse_follows_focus"
+#define COMMAND_CONFIG_FFM                       "focus_follows_mouse"
+#define COMMAND_CONFIG_DISPLAY_ORDER             "display_arrangement_order"
+#define COMMAND_CONFIG_WINDOW_ORIGIN             "window_origin_display"
+#define COMMAND_CONFIG_WINDOW_PLACEMENT          "window_placement"
+#define COMMAND_CONFIG_WINDOW_INSERT_POINT       "window_insertion_point"
+#define COMMAND_CONFIG_WINDOW_ZOOM_PERSIST       "window_zoom_persist"
+#define COMMAND_CONFIG_OPACITY                   "window_opacity"
+#define COMMAND_CONFIG_OPACITY_DURATION          "window_opacity_duration"
+#define COMMAND_CONFIG_ANIMATION_DURATION        "window_animation_duration"
+#define COMMAND_CONFIG_ANIMATION_EASING          "window_animation_easing"
+#define COMMAND_CONFIG_EXPOSE_ANIMATION_DURATION "expose_animation_duration"
+#define COMMAND_CONFIG_SHADOW                    "window_shadow"
+#define COMMAND_CONFIG_MENUBAR_OPACITY           "menubar_opacity"
+#define COMMAND_CONFIG_ACTIVE_WINDOW_OPACITY     "active_window_opacity"
+#define COMMAND_CONFIG_NORMAL_WINDOW_OPACITY     "normal_window_opacity"
+#define COMMAND_CONFIG_INSERT_FEEDBACK_COLOR     "insert_feedback_color"
+#define COMMAND_CONFIG_TOP_PADDING               "top_padding"
+#define COMMAND_CONFIG_BOTTOM_PADDING            "bottom_padding"
+#define COMMAND_CONFIG_LEFT_PADDING              "left_padding"
+#define COMMAND_CONFIG_RIGHT_PADDING             "right_padding"
+#define COMMAND_CONFIG_LAYOUT                    "layout"
+#define COMMAND_CONFIG_WINDOW_GAP                "window_gap"
+#define COMMAND_CONFIG_SPLIT_RATIO               "split_ratio"
+#define COMMAND_CONFIG_SPLIT_TYPE                "split_type"
+#define COMMAND_CONFIG_AUTO_BALANCE              "auto_balance"
+#define COMMAND_CONFIG_MOUSE_MOD                 "mouse_modifier"
+#define COMMAND_CONFIG_MOUSE_ACTION1             "mouse_action1"
+#define COMMAND_CONFIG_MOUSE_ACTION2             "mouse_action2"
+#define COMMAND_CONFIG_MOUSE_DROP_ACTION         "mouse_drop_action"
+#define COMMAND_CONFIG_EXTERNAL_BAR              "external_bar"
 
-#define SELECTOR_CONFIG_SPACE                "--space"
+#define SELECTOR_CONFIG_SPACE                    "--space"
 
 #define ARGUMENT_CONFIG_FFM_AUTOFOCUS         "autofocus"
 #define ARGUMENT_CONFIG_FFM_AUTORAISE         "autoraise"
@@ -1315,6 +1316,22 @@ static void handle_domain_config(FILE *rsp, struct token domain, char *message)
                 }
                 if (!match) daemon_fail(rsp, "unknown value '%.*s' given to command '%.*s' for domain '%.*s'\n", value.length, value.text, command.length, command.text, domain.length, domain.text);
             }
+        } else if (token_equals(command, COMMAND_CONFIG_EXPOSE_ANIMATION_DURATION)) {
+          struct token_value value = token_to_value(get_token(&message));
+          if (value.type == TOKEN_TYPE_INVALID) {
+              fprintf(rsp, "%f\n", g_window_manager.window_animation_duration);
+          } else if (value.type == TOKEN_TYPE_FLOAT) {
+              if (!scripting_addition_is_sip_friendly()) {
+                  daemon_fail(rsp, "command '%.*s' for domain '%.*s' requires System Integrity Protection to be partially disabled! ignoring request..\n", command.length, command.text, domain.length, domain.text);
+              } else {
+                  g_space_manager.expose_animation_duration = value.float_value;
+                  scripting_addition_set_expose_animation_duration(value.float_value);
+              }
+          } else if (value.type == TOKEN_TYPE_STRING && string_equals(value.string_value, "refresh")) {
+              scripting_addition_set_expose_animation_duration(g_space_manager.expose_animation_duration);
+          } else {
+              daemon_fail(rsp, "unknown value '%.*s' given to command '%.*s' for domain '%.*s'\n", value.token.length, value.token.text, command.length, command.text, domain.length, domain.text);
+          }
         } else if (token_equals(command, COMMAND_CONFIG_SHADOW)) {
             struct token value = get_token(&message);
             if (!token_is_valid(value)) {

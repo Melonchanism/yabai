@@ -51,7 +51,7 @@ int g_connection;
 bool g_verbose;
 pid_t g_pid;
 
-static int client_send_message(int argc, char **argv)
+int client_send_message(int argc, char **argv)
 {
     if (argc <= 1) {
         error("yabai-msg: no arguments given! abort..\n");

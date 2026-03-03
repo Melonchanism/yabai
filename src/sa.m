@@ -6,6 +6,8 @@ extern int csr_get_active_config(uint32_t *config);
 
 extern char g_sa_socket_file[MAXLEN];
 
+extern int client_send_message(int argc, char **argv);
+
 static char osax_base_dir[MAXLEN];
 static char osax_contents_dir[MAXLEN];
 static char osax_contents_macos_dir[MAXLEN];
@@ -410,6 +412,17 @@ int scripting_addition_load(void)
         result = scripting_addition_perform_validation();
     }
 
+    // char cmd[MAXLEN];
+    // snprintf(cmd, sizeof(cmd), "%s %s", (char*)[[[NSBundle mainBundle] executablePath] UTF8String], "-m config expose_animation_duration refresh");
+    uid_t uid = atoi(getenv("SUDO_UID"));
+    gid_t gid = atoi(getenv("SUDO_GID"));
+    char* user = getenv("SUDO_USER");
+    setenv("USER", user, 1);
+    setgid(gid);
+    setuid(uid);
+    char *argv[] = {"-m", "config", "expose_animation_duration", "refresh", nil};
+    client_send_message(4, argv);
+
 out:
     [pool drain];
     return result;
@@ -618,6 +631,14 @@ bool scripting_addition_move_window_to_space(uint64_t sid, uint32_t wid)
     pack(sid);
     pack(wid);
     return sa_payload_send(SA_OPCODE_WINDOW_TO_SPACE);
+}
+
+bool scripting_addition_set_expose_animation_duration(double duration)
+{
+    NSLog(@"[yabai-sa] [yabai] duration: %f", duration);
+    sa_payload_init();
+    pack(duration);
+    return sa_payload_send(SA_OPCODE_SET_EXPOSE_ANIMATION_DURATION);
 }
 
 #undef sa_payload_init

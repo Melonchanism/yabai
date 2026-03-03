@@ -26,6 +26,7 @@ struct space_manager
     bool window_zoom_persist;
     uint32_t auto_balance;
     struct space_label *labels;
+    double expose_animation_duration;
 };
 
 enum space_op_error

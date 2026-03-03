@@ -1,5 +1,6 @@
 #include <Foundation/Foundation.h>
 
+#include <Foundation/NSObjCRuntime.h>
 #include <mach-o/getsect.h>
 #include <mach-o/dyld.h>
 #include <mach/mach.h>
@@ -90,6 +91,9 @@ static bool macOSSequoia;
 static pthread_t daemon_thread;
 static int daemon_sockfd;
 
+static double expose_animation_duration = -1;
+static double (*orig_WVExpose_animationDuration)(id, SEL);
+
 static void dump_class_info(Class c)
 {
     const char *name = class_getName(c);
@@ -127,6 +131,18 @@ static Class dump_class_info_by_name(const char *name)
         dump_class_info(c);
     }
     return c;
+}
+
+static double hook_WVExpose_animationDuration(id self, SEL sel) {
+    if (expose_animation_duration >= 0) {
+        return expose_animation_duration;
+    } else {
+        if (orig_WVExpose_animationDuration != nil) {
+            return orig_WVExpose_animationDuration(self, sel);
+        } else {
+            return 0.25;
+        }
+    }
 }
 
 static uint64_t static_base_address(void)
@@ -390,6 +406,18 @@ static void init_instances()
         } else {
             NSLog(@"[yabai-sa] animation_time_addr vm_protect failed; unable to patch instruction!");
         }
+    }
+
+    SEL orig_selector = @selector(animationDuration);
+    Class WVExpose = objc_getClass("WVExpose");
+    if (WVExpose == nil) {
+        WVExpose = objc_getClass("_TtC8DockCore8WVExpose");
+    }
+    if (WVExpose != nil) {
+        Method orig_method = class_getInstanceMethod(WVExpose, orig_selector);
+        orig_WVExpose_animationDuration = (double (*)(id, SEL))(method_setImplementation(orig_method, (IMP)hook_WVExpose_animationDuration));
+    } else {
+      NSLog(@"[yabai-sa] WVExpose.animationDuration could not be overridden");
     }
 }
 
@@ -929,6 +957,13 @@ static void do_window_move_to_space(char *message)
     CFRelease(window_list_ref);
 }
 
+static void set_expose_animation_duration(char *message) {
+    double duration;
+    unpack(duration);
+    expose_animation_duration = duration;
+    NSLog(@"[yabai-sa] expose_animation_duration: %f", expose_animation_duration);
+}
+
 static void do_handshake(int sockfd)
 {
     uint32_t attrib = 0;
@@ -957,6 +992,7 @@ static void do_handshake(int sockfd)
 static void handle_message(int sockfd, char *message)
 {
     enum sa_opcode op = *message++;
+    NSLog(@"[yabai-sa] Message Recieved: %d", op);
     switch (op) {
     case SA_OPCODE_HANDSHAKE: {
         do_handshake(sockfd);
@@ -1014,6 +1050,9 @@ static void handle_message(int sockfd, char *message)
     } break;
     case SA_OPCODE_WINDOW_TO_SPACE: {
         do_window_move_to_space(message);
+    } break;
+    case SA_OPCODE_SET_EXPOSE_ANIMATION_DURATION: {
+        set_expose_animation_duration(message);
     } break;
     }
 }
