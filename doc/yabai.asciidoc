@@ -205,6 +205,12 @@ Global Settings
     Easing function to use for window animations. +
     See https://easings.net for details.
 
+*expose_animation_duration* ['<FLOAT_SEL>']::
+    Duration of expose animations such as mission control. +
+    If 0.0, the animation will be disabled. +
+    If negative, the default value of 0.25 will be used. +
+    System Integrity Protection must be partially disabled.
+
 *insert_feedback_color* ['0xAARRGGBB']::
     Color of the *window --insert* message and mouse_drag selection. +
     The purpose is to provide a visual preview of the new window frame.

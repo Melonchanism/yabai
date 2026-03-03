@@ -42,6 +42,7 @@ yabai -m config                                 \
     mouse_modifier               fn             \
     mouse_action1                move           \
     mouse_action2                resize         \
-    mouse_drop_action            swap
+    mouse_drop_action            swap           \
+    expose_animation_duration    0.0
 
 echo "yabai configuration loaded.."
