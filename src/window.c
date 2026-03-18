@@ -1104,6 +1104,7 @@ struct window *window_create(struct application *application, AXUIElementRef win
     window->subrole = window_ax_subrole(window);
     window->title = window_title(window);
     window->is_root = !window_parent(window->id) || window_is_root(window);
+    window->first_resize_done = false;
 
     if (window_shadow(window->id)) {
         window_set_flag(window, WINDOW_SHADOW);

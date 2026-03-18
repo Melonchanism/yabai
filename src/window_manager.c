@@ -430,6 +430,7 @@ void window_manager_resize_window(struct window *window, float width, float heig
 
     AXUIElementSetAttributeValue(window->ref, kAXSizeAttribute, size_ref);
     CFRelease(size_ref);
+    window->first_resize_done = true;
 }
 
 #pragma clang diagnostic push
@@ -707,7 +708,15 @@ void window_manager_animate_window_list(struct window_capture *window_list, int 
     TIME_FUNCTION;
 
     if (g_window_manager.window_animation_duration) {
-        window_manager_animate_window_list_async(window_list, window_count);
+        struct window_capture *new_window_list = NULL;
+        for (int i = 0; i < window_count; i++) {
+            if (window_list[i].window->first_resize_done) {
+                ts_buf_push(new_window_list, (window_list[i]));
+            } else {
+                window_manager_set_window_frame(window_list[i].window, window_list[i].x, window_list[i].y, window_list[i].w, window_list[i].h);
+            }
+        }
+        window_manager_animate_window_list_async(new_window_list, ts_buf_len(new_window_list));
     } else {
         for (int i = 0; i < window_count; ++i) {
             window_manager_set_window_frame(window_list[i].window, window_list[i].x, window_list[i].y, window_list[i].w, window_list[i].h);
@@ -719,7 +728,7 @@ void window_manager_animate_window(struct window_capture capture)
 {
     TIME_FUNCTION;
 
-    if (g_window_manager.window_animation_duration) {
+    if (g_window_manager.window_animation_duration && capture.window->first_resize_done) {
         window_manager_animate_window_list_async(&capture, 1);
     } else {
         window_manager_set_window_frame(capture.window, capture.x, capture.y, capture.w, capture.h);

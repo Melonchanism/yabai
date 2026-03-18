@@ -103,6 +103,7 @@ struct window
     float opacity;
     int layer;
     char *scratchpad;
+    bool first_resize_done;
 };
 
 enum window_flag
