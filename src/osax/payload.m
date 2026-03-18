@@ -829,6 +829,7 @@ static void do_window_swap_proxy_in(char *message)
         unpack(proxy_wid);
 
         SLSTransactionOrderWindowGroup(transaction, proxy_wid, 1, wid);
+        SLSTransactionSetWindowSubLevel(transaction, proxy_wid, SLSGetWindowSubLevel(SLSMainConnectionID(), wid));
         SLSTransactionSetWindowSystemAlpha(transaction, wid, 0);
     }
     SLSTransactionCommit(transaction, 0);
