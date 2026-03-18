@@ -41,30 +41,7 @@
 #define unpack(v) memcpy(&v, message, sizeof(v)); message += sizeof(v)
 #define lerp(a, t, b) (((1.0-t)*a) + (t*b))
 
-extern int SLSMainConnectionID(void);
-extern CGError SLSGetConnectionPSN(int cid, ProcessSerialNumber *psn);
-extern CGError SLSGetWindowAlpha(int cid, uint32_t wid, float *alpha);
-extern CGError SLSSetWindowAlpha(int cid, uint32_t wid, float alpha);
-extern OSStatus SLSMoveWindowWithGroup(int cid, uint32_t wid, CGPoint *point);
-extern CGError SLSReassociateWindowsSpacesByGeometry(int cid, CFArrayRef window_list);
-extern CGError SLSGetWindowOwner(int cid, uint32_t wid, int *window_cid);
-extern CGError SLSSetWindowTags(int cid, uint32_t wid, uint64_t *tags, size_t tag_size);
-extern CGError SLSClearWindowTags(int cid, uint32_t wid, uint64_t *tags, size_t tag_size);
-extern CGError SLSGetWindowBounds(int cid, uint32_t wid, CGRect *frame);
-extern CGError SLSGetWindowTransform(int cid, uint32_t wid, CGAffineTransform *t);
-extern CGError SLSSetWindowTransform(int cid, uint32_t wid, CGAffineTransform t);
-extern CGError SLSOrderWindow(int cid, uint32_t wid, int order, uint32_t rel_wid);
-extern void SLSManagedDisplaySetCurrentSpace(int cid, CFStringRef display_ref, uint64_t sid);
-extern uint64_t SLSManagedDisplayGetCurrentSpace(int cid, CFStringRef display_ref);
-extern CFStringRef SLSCopyManagedDisplayForSpace(int cid, uint64_t sid);
-extern void SLSMoveWindowsToManagedSpace(int cid, CFArrayRef window_list, uint64_t sid);
-extern void SLSShowSpaces(int cid, CFArrayRef space_list);
-extern void SLSHideSpaces(int cid, CFArrayRef space_list);
-extern CFTypeRef SLSTransactionCreate(int cid);
-extern CGError SLSTransactionCommit(CFTypeRef transaction, int synchronous);
-extern CGError SLSTransactionOrderWindowGroup(CFTypeRef transaction, uint32_t wid, int order, uint32_t rel_wid);
-extern CGError SLSTransactionSetWindowSystemAlpha(CFTypeRef transaction, uint32_t wid, float alpha);
-extern CGError SLSSetWindowSubLevel(int cid, uint32_t wid, int level);
+#include "../misc/extern.h"
 
 struct window_fade_context
 {
